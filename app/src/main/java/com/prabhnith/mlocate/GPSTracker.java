@@ -48,7 +48,7 @@ public class GPSTracker extends Service implements LocationListener {
 
                 if (isGPSEnabled) {
                     if (location == null) {
-                        locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 1000, 10, this);
+                        locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 10000, 30, this);
                         if (locationManager != null) {
                             location = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
                             Log.i("LATITUTE", "getLocation: " + location);
@@ -59,7 +59,7 @@ public class GPSTracker extends Service implements LocationListener {
                 //if location is not found from the gps then it will find from the network
                 if (isNetworkEnabled) {
                     if (location == null) {
-                        locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 10000, 10, this);
+                        locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 10000, 30, this);
                         if (locationManager != null) {
                             location = locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
                         }
@@ -69,11 +69,13 @@ public class GPSTracker extends Service implements LocationListener {
             }
 
         } catch (Exception ex) {
-            Toast.makeText(context, "This is my Toast message!",
+            Toast.makeText(context, "GPS/NW NOT ENABLES!",
                     Toast.LENGTH_LONG).show();
+            ex.printStackTrace();
         }
         return location;
     }
+
 
     @Nullable
     @Override
@@ -82,8 +84,8 @@ public class GPSTracker extends Service implements LocationListener {
     }
 
     @Override
-    public void onLocationChanged(Location location) {
-
+    public void onLocationChanged(Location local) {
+        location = local;
     }
 
     @Override

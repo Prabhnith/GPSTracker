@@ -1,13 +1,19 @@
 package com.prabhnith.mlocate;
 
 import android.Manifest;
+import android.app.AlertDialog;
 import android.content.Context;
+import android.content.DialogInterface;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.location.Location;
+import android.location.LocationManager;
 import android.os.Build;
 import android.os.Bundle;
+import android.provider.Settings;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.FragmentActivity;
+import android.widget.Toast;
 
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
@@ -19,10 +25,15 @@ import com.google.android.gms.maps.model.MarkerOptions;
 public class MapsActivity extends FragmentActivity implements OnMapReadyCallback {
 
     public static final int MY_PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION = 0;
+    public static GoogleMap mMap;
+    protected LocationManager locationManager;
     double latitute, longitute;
-    private GoogleMap mMap;
+    boolean isGPSEnabled = false;
+    //    boolean canGetLocation = false;
+    boolean isNetworkEnabled = false;
     private Location mlocation;
     private GPSTracker gpsTracker;
+//    Location location;
 
     public static boolean hasPermissions(Context context, String... permissions) {
 
@@ -47,7 +58,9 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         if (!hasPermissions(this, Permissions)) {
             ActivityCompat.requestPermissions(this, Permissions, Permission_All);
         }
+        chkGpsNetworkEnabled();
         gpsTracker = new GPSTracker(getApplicationContext());
+
         mlocation = gpsTracker.getLocation();
 
         if (mlocation != null) {
@@ -73,11 +86,48 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     @Override
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
-
         // Add a marker in mylocation and move the camera
+        latitute = mlocation.getLatitude();
+        longitute = mlocation.getLongitude();
         LatLng mylocation = new LatLng(latitute, longitute);
         mMap.addMarker(new MarkerOptions().position(mylocation).title("Prabh is here"));
         mMap.moveCamera(CameraUpdateFactory.newLatLng(mylocation));
     }
 
+    public void chkGpsNetworkEnabled() {
+        try {
+            locationManager = (LocationManager) getApplicationContext().getSystemService(LOCATION_SERVICE);
+            // getting GPS status
+            isGPSEnabled = locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER);
+            // getting network status
+            isNetworkEnabled = locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER);
+
+            String strMsg = "Please Enable your GPS or Location Service";
+
+            if (!isGPSEnabled) {
+                // notify user
+                AlertDialog.Builder dialog = new AlertDialog.Builder(this);
+                dialog.setMessage(strMsg);
+                dialog.setPositiveButton("GPS Settings", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface paramDialogInterface, int paramInt) {
+                        Intent myIntent = new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS);
+                        getApplicationContext().startActivity(myIntent);
+                        //get gps
+                    }
+                }).setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+
+                    @Override
+                    public void onClick(DialogInterface paramDialogInterface, int paramInt) {
+
+                    }
+                });
+                dialog.show();
+            }
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        } finally {
+            Toast.makeText(this, "location :" + latitute + " " + longitute, Toast.LENGTH_SHORT).show();
+        }
+    }
 }
